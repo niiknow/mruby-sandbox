@@ -1,6 +1,6 @@
 module SANDBOX
   class UtilRuntime
-  	def base64(value)
+    def base64(value)
       r = [ value ].pack('m')
       r.include?("\n") ? r.split("\n").join("") : r
     end
@@ -19,6 +19,6 @@ module SANDBOX
 
     def digest_hmac_hex_sha256(key, value)
       Digest::HMAC.hexdigest(value, key, Digest::SHA256)
-	end
+    end
   end
 end

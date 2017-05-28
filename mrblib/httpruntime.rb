@@ -111,6 +111,11 @@ private
       tmp
     end
 
+    # 
+    # create auth header if defined
+    # @param opts [Object] request parameters
+    # 
+    # @return [Object] self
     def authHeader(opts)
       auth = opts["auth"]
       if opts["auth"]
@@ -120,8 +125,14 @@ private
         cred = util.base64("#{auth[0]}:#{auth[1]}")
         opts.headers["Authorization"] = "Basic #{cred}"
       end
+      self
     end
 
+    # 
+    # apply oauth header if defined
+    # @param opts [Object] request parameters 
+    # 
+    # @return [Object] self
     def oauthHeader(opts)
       oauth = opts["auth"]["oauth"]
       if oauth
@@ -146,24 +157,49 @@ private
         parameters["oauth_signature"] = signature(opts, parameters)
         opts["headers"]["Authorization"] = "OAuth #{qsencode(parameters, ',', '"')}"
       end
+      self
     end
 
+    # 
+    # generate signature
+    # @param opts [Object] request parameter
+    # @param parameters [Object] oauth parameters
+    # 
+    # @return [String] the signature
     def signature(opts, parameters)
       util = UtilRuntime. new
       util.base64(util.digest_hmac_sha1(calculateBaseString(opts["method"], opts["urlParsed"], opts["body"], parameters), secret(opts["auth"])))
     end
 
+    # 
+    # generate secret key for signing
+    # @param auth [Object] the oauth config
+    # 
+    # @return [String] the secret to use for signing
     def secret(auth)
       oauth = auth["oauth"]
       encodeURIComponent(oauth["consumersecret"]) + '&' + encodeURIComponent(oauth["tokensecret"] || '')
     end
 
+    # 
+    # calculate the base string to sign with
+    # @param method [String] http method
+    # @param url [Object] the parsed url that includes query string
+    # @param body [string] the content to send
+    # @param parameters [Object] the signature parameter
+    # 
+    # @return [String] the result base string
     def calculateBaseString(method, url, body, parameters)
       base_url = calculateBaseUrl(url)
       parameters = normalizeParameters(parameters, body, url.query)
       qsencode([ method, base_url, parameters ])
     end
 
+    # 
+    # calculate the base url from parsed url
+    # @param url [Object] the parsed URL
+    # 
+    # @return [String] the base URL string
     def calculateBaseUrl(url)
       str = url.schema + "://"
       str += url.host
@@ -172,6 +208,13 @@ private
       str
     end
 
+    # 
+    # create the result string for signature
+    # @param parameters [Object] the oauth parameters
+    # @param body [String] the content to send
+    # @param query [String] the query string
+    # 
+    # @return [String] the result string without signature
     def normalizeParameters(parameters, body, query)
       parameters = qsencode(parameters, nil)
       parameters += body.split('&') if body
