@@ -1,6 +1,6 @@
 module SANDBOX
   class HttpRuntime
-    USER_AGENT = "mruby_sandbox"
+    USER_AGENT = "Mozilla/5.0"
 
     # 
     # make a request
