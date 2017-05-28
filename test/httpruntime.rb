@@ -26,7 +26,7 @@ assert('SANDBOX::HttpRuntime.qsencode') do
   assert_equal "a=%20b&%20c=d", rst
 end
 
-assert('SANDBOX::HttpRuntime.request') do
+assert('SANDBOX::HttpRuntime.request fail lookup') do
   CONSUMER_KEY        = ''
   CONSUMER_SECRET     = ''
   ACCESS_TOKEN        = ''
@@ -35,7 +35,13 @@ assert('SANDBOX::HttpRuntime.request') do
   http = SANDBOX::HttpRuntime. new
   response = http.request({ "method" => "GET", "url" => API_URL, "auth" => {"oauth" => {"consumerkey" => CONSUMER_KEY, "consumersecret" => CONSUMER_SECRET, "accesstoken" => ACCESS_TOKEN, "tokensecret" => ACCESS_TOKEN_SECRET}}})
 
-  rst = response["err"].message.include?("nodename")
+  assert_equal true, response["err"].message.include?("nodename")
+end
 
-  assert_equal true, rst
+assert('SANDBOX::HttpRuntime.request GET success') do
+  API_URL             = 'https://www.google.com'
+  http = SANDBOX::HttpRuntime. new
+  response = http.request({ "method" => "GET", "url" => API_URL})
+
+  assert_equal 200, response["statuscode"]
 end

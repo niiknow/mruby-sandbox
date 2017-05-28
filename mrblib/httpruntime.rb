@@ -36,12 +36,11 @@ module SANDBOX
           opts["Content-Length"] = (opts["body"] || '').length
         end
 
-        basicHeader(opts)
-        oauthHeader(opts)
+        authHeader(opts)
         
         rsp = SimpleHttp.new(url.schema, host, url.port).request(opts["method"], request_uri, opts["headers"])
 
-        {"content" => res.body, "statuscode" => res.code, "headers" => res.headers, "req" => opts, "rsp" => rsp}
+        {"content" => rsp.body, "statuscode" => rsp.code, "headers" => rsp.headers, "req" => opts, "rsp" => rsp}
       rescue Exception => e
         {"statuscode" => 0, "err" => e, "req" => opts}
       end
@@ -112,7 +111,7 @@ private
       tmp
     end
 
-    def basicHeader(opts)
+    def authHeader(opts)
       auth = opts["auth"]
       if opts["auth"]
         if auth["oauth"]
@@ -136,6 +135,14 @@ private
           "oauth_version" => oauth["version"] || '1.0'
         }
 
+        if (oauth["accesstoken"])
+          parameters["oauth_token"] = oauth["accesstoken"]
+        end
+
+        if (oauth["callback"])
+          parameters["oauth_callback"] = encodeURIComponent(oauth["callback"])
+        end
+
         parameters["oauth_signature"] = signature(opts, parameters)
         opts["headers"]["Authorization"] = "OAuth #{qsencode(parameters, ',', '"')}"
       end
@@ -148,7 +155,7 @@ private
 
     def secret(auth)
       oauth = auth["oauth"]
-      encodeURIComponent(oauth["consumersecret"]) + '&' + encodeURIComponent(oauth["tokensecret"])
+      encodeURIComponent(oauth["consumersecret"]) + '&' + encodeURIComponent(oauth["tokensecret"] || '')
     end
 
     def calculateBaseString(method, url, body, parameters)
