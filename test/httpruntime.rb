@@ -33,6 +33,9 @@ assert('SANDBOX::HttpRuntime.request') do
   ACCESS_TOKEN_SECRET = ''
   API_URL             = 'https://bogus.twitter.com/1.1/statuses/home_timeline.json'
   http = SANDBOX::HttpRuntime. new
-  response = http.request({ "method" => "GET", "url" => API_URL, "oauth" => {"consumerkey" => CONSUMER_KEY, "consumersecret" => CONSUMER_SECRET, "accesstoken" => ACCESS_TOKEN, "tokensecret" => ACCESS_TOKEN_SECRET}})
-  assert_equal 0, response["code"]
+  response = http.request({ "method" => "GET", "url" => API_URL, "auth" => {"oauth" => {"consumerkey" => CONSUMER_KEY, "consumersecret" => CONSUMER_SECRET, "accesstoken" => ACCESS_TOKEN, "tokensecret" => ACCESS_TOKEN_SECRET}}})
+
+  rst = response["err"].message.include?("nodename")
+
+  assert_equal true, rst
 end

@@ -78,6 +78,13 @@ module SANDBOX
       end
     end
 
+    # 
+    # random for use as nonce or state query string
+    # 
+    # @return [String] some random hex
+    def nonce() 
+      Digest::MD5.hexdigest(Time.now.to_i.to_s)
+    end
 private
     # 
     # encodeURIComponent 
@@ -106,17 +113,20 @@ private
     end
 
     def basicHeader(opts)
-      if opts[:auth]
-        cred = util.base64("#{opts[:auth][0]}:#{opts[:auth][1]}")
+      auth = opts["auth"]
+      if opts["auth"]
+        if auth["oauth"]
+          return oauthHeader(opts)
+        end
+        cred = util.base64("#{auth[0]}:#{auth[1]}")
         opts.headers["Authorization"] = "Basic #{cred}"
       end
     end
 
     def oauthHeader(opts)
-      oauth = opts["oauth"]
+      oauth = opts["auth"]["oauth"]
       if oauth
         timestamp = Time.now.to_i.to_s
-        nonce = Digest::MD5.hexdigest(timestamp)
         parameters = {
           "oauth_consumer_key" => oauth["consumerkey"],
           "oauth_token" => oauth["accesstoken"],
@@ -133,11 +143,11 @@ private
 
     def signature(opts, parameters)
       util = UtilRuntime. new
-      util.base64(util.digest_hmac_sha1(calculateBaseString(opts["method"], opts["urlParsed"], opts["body"], parameters), secret(opts)))
+      util.base64(util.digest_hmac_sha1(calculateBaseString(opts["method"], opts["urlParsed"], opts["body"], parameters), secret(opts["auth"])))
     end
 
-    def secret(opts)
-      oauth = opts["oauth"]
+    def secret(auth)
+      oauth = auth["oauth"]
       encodeURIComponent(oauth["consumersecret"]) + '&' + encodeURIComponent(oauth["tokensecret"])
     end
 
